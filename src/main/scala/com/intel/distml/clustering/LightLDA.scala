@@ -402,7 +402,7 @@ object LightLDA {
 
     var log_likelihood: Double = 0.0
     var nwords: Int = 0
-
+    val totalwordNum = 0; // Total word number in corpus, for calculating likelihood.
     val samples = new util.LinkedList[(Array[Int], Array[(Int, Int)])]
 
     val keys = new KeyList()
@@ -423,21 +423,27 @@ object LightLDA {
     for (i <- 0 to samples.length - 1) {
       val doc = samples(i)
 
-      val ndk = doc._1
-      val words = doc._2
+      val ndk = doc._1 // array int
+      val words = doc._2 // array (int, int), key->num?
 
       nwords += words.length
+      val theta_vector : Array[Double] = (ndk[docid] + alpha)/(words.length + K * m.alpha_sum); // theta is a vector
       for (n <- 0 to words.length - 1) {
         var l: Double = 0
-        val w: Int = words(n)._1
+        val w: Int = words(n)._1 // word id?
+        val phi_vector : Array[Double] = nwk[w];
+        val p_perword = math.dot(theta_vector, phi_vector);
+        log_likelihood += -1 * Math.log(p_perword)
+        //for (k <- 0 to m.K-1) {
+        // val theta: Double = (ndk(k) + m.alpha) / (words.length + m.alpha_sum)
+        //  val phi: Double = (nwk(w)(k) + m.beta) / (nk(k) + m.beta_sum)
+        //  l += theta * phi
+        //}
 
-        for (k <- 0 to m.K-1) {
-          val theta: Double = (ndk(k) + m.alpha) / (words.length + m.alpha_sum)
-          val phi: Double = (nwk(w)(k) + m.beta) / (nk(k) + m.beta_sum)
-          l += theta * phi
-        }
-        log_likelihood += Math.log(l)
+
+        //log_likelihood += Math.log(l)
       }
+      return log_likelihood/totalwordNum ;//
     }
 
     result(0) = (log_likelihood, nwords)
